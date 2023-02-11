@@ -4,7 +4,7 @@ import datetime
 from dateutil import parser
 from SensitiveData import *
 
-message = f"Subject: Tariff Prices\n\nDate: {(datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%m/%d')}\n\n"
+message = f"Subject: Tariff Prices\n\nDate: {(datetime.datetime.now()).strftime('%m/%d')}\n\n"
 
 smtp_server = "smtp.gmail.com"
 port = 465
@@ -28,14 +28,14 @@ def formatEmail():
 
         global message
         for price in Prices:
+            if datetime.time(0,0) == parser.parse(price["valid_from"]).time():
+                message += f"Date: {(datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%m/%d')} \r\n\r\n"
+            
             message += f'Price (inc vat): {price["value_inc_vat"]}\r\nPeriod: {parser.parse(price["valid_from"]).strftime("%H:%M")}-{parser.parse(price["valid_to"]).strftime("%H:%M")}\r\n\r\n'
-        
+
 
 formatEmail()
-
-print(message)
 
 with smtplib.SMTP_SSL(smtp_server, port, context=context) as server:
     server.login(email_sender, password)
     server.sendmail(email_sender, email_receiver, message)
-
