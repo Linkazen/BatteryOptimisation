@@ -1,18 +1,17 @@
 import requests
 from requests.auth import HTTPBasicAuth
+import datetime
 import json
 
 import APIKeys
 
 
 def GetTariffInfo():
-    TariffInfo = requests.get(f"https://api.octopus.energy/v1/products/{APIKeys.Product_Code}/electricity-tariffs/{APIKeys.Tariff_Code}/standard-unit-rates/")
+    Period_from = datetime.datetime.now().replace(hour=22, minute=0, second=0, microsecond=0).isoformat()
+    TariffInfo = requests.get(f"https://api.octopus.energy/v1/products/{APIKeys.Product_Code}/electricity-tariffs/{APIKeys.Tariff_Code}/standard-unit-rates?period_from={Period_from}")
     
     with open("InverterInfo/Tariffs.json", "w") as TariffFile:
         TariffFile.write(json.dumps(TariffInfo.json()))
-
-    
-
 
 """
 In order to save API calls the function
@@ -24,3 +23,5 @@ def GetWeatherInfo():
 
     with open("InverterInfo/WeatherForecast.json", "w") as WeatherFile:
         WeatherFile.write(json.dumps(WeatherInfo.json()))
+
+GetTariffInfo()

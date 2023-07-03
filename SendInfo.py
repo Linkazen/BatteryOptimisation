@@ -1,13 +1,17 @@
 import smtplib, ssl
 import json
 import datetime
+import pytz
 from dateutil import parser
+from pytz import timezone
 from SensitiveData import *
 
 message = f"Subject: Tariff Prices\n\nDate: {(datetime.datetime.now()).strftime('%m/%d')}\n\n"
 
 smtp_server = "smtp.gmail.com"
 port = 465
+
+tz = timezone("Europe/London")
 
 context = ssl.create_default_context()
 
@@ -20,19 +24,23 @@ def formatEmail():
     with open("InverterInfo/Tariffs.json") as TariffPrices:
         TariffData = json.loads(TariffPrices.read())
 
+        # Prices are a list of prices after a certain time
         Prices = TariffData["results"]
 
-        Prices = list(filter(lambda Obj : parser.parse(Obj["valid_from"], ignoretz=True) >= datetime.datetime.now().replace(hour=23, minute=0, second=0, microsecond=0), Prices))
+        for price in Prices:
+            price["valid_from"] = parser.parse(price["valid_from"]).astimezone(tz)
+            price["valid_to"] = parser.parse(price["valid_to"]).astimezone(tz)
+
+        Prices = list(filter(lambda Obj : Obj["valid_from"] >= datetime.datetime.now().replace(hour=23, minute=0, second=0, microsecond=0).astimezone(tz), Prices))
 
         Prices.reverse()
 
         global message
         for price in Prices:
-            if datetime.time(0,0) == parser.parse(price["valid_from"]).time():
+            if datetime.time(0,0) == price["valid_from"].time():
                 message += f"Date: {(datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%m/%d')} \r\n\r\n"
             
-            message += f'Price (inc vat): {price["value_inc_vat"]}\r\nPeriod: {parser.parse(price["valid_from"]).strftime("%H:%M")}-{parser.parse(price["valid_to"]).strftime("%H:%M")}\r\n\r\n'
-
+            message += f'Price (inc vat): {price["value_inc_vat"]}\r\nPeriod: {price["valid_from"].strftime("%H:%M")}-{price["valid_to"].strftime("%H:%M")}\r\n\r\n'
 
 formatEmail()
 
