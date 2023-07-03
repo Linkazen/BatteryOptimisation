@@ -10,7 +10,7 @@ def GetTariffInfo():
     Period_from = datetime.datetime.now().replace(hour=22, minute=0, second=0, microsecond=0).isoformat() + "Z"
     TariffInfo = requests.get(f"https://api.octopus.energy/v1/products/{APIKeys.Product_Code}/electricity-tariffs/{APIKeys.Tariff_Code}/standard-unit-rates?period_from={Period_from}")
     
-    with open("InverterInfo/Tariffs.json", "w") as TariffFile:
+    with open("/home/pi/BatteryOptimisation/InverterInfo/Tariffs.json", "w") as TariffFile:
         TariffFile.write(json.dumps(TariffInfo.json()))
 
 """
