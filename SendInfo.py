@@ -21,17 +21,24 @@ so that it will be human readable and easy
 to copy paste for the client
 """
 def formatEmail():
-    with open("InverterInfo/Tariffs.json") as TariffPrices:
+    with open("/home/pi/BatteryOptimisation/InverterInfo/Tariffs.json") as TariffPrices:
+        PriceToCompare = 0
         TariffData = json.loads(TariffPrices.read())
 
         # Prices are a list of prices after a certain time
         Prices = TariffData["results"]
 
+        # Converts all times valid to/from into date objects in the timezone
         for price in Prices:
             price["valid_from"] = parser.parse(price["valid_from"]).astimezone(tz)
             price["valid_to"] = parser.parse(price["valid_to"]).astimezone(tz)
+        
+        if Prices[0]["valid_from"].day != datetime.datetime.now().day:
+            PriceToCompare = datetime.datetime.now().replace(hour=23, minute=0, second=0, microsecond=0).astimezone(tz)
+        else:
+            PriceToCompare = datetime.datetime.now().replace(day=(datetime.datetime.now().day - 1),hour=23, minute=0, second=0, microsecond=0).astimezone(tz)
 
-        Prices = list(filter(lambda Obj : Obj["valid_from"] >= datetime.datetime.now().replace(hour=23, minute=0, second=0, microsecond=0).astimezone(tz), Prices))
+        Prices = list(filter(lambda Obj : Obj["valid_from"] >= PriceToCompare, Prices))
 
         Prices.reverse()
 
