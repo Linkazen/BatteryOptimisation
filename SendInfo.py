@@ -52,5 +52,6 @@ def formatEmail():
 formatEmail()
 
 with smtplib.SMTP_SSL(smtp_server, port, context=context) as server:
+    # Sends an email to the list of people in the email_reciever array
     server.login(email_sender, password)
     server.sendmail(email_sender, email_receiver, message)
